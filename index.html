@@ -424,17 +424,17 @@
     <div id="access-step-request">
       <p class="eyebrow" style="margin-bottom:10px;">Acceso de administrador</p>
       <h3>Solicitar acceso</h3>
-      <p class="access-desc">Escribe tu email. Le llegara un aviso a Two Blondes y ellos deciden si te pasan la contrasena.</p>
+      <p class="access-desc">Escribe tu email. Le llegara un aviso a Two Blondes y ellos deciden si te pasan la contraseña.</p>
       <input type="email" id="access-email-input" placeholder="tu@email.com">
       <button id="access-request-btn" class="access-btn-primary">Enviar solicitud</button>
       <p id="access-request-status" class="access-status"></p>
-      <button id="access-go-password" class="access-link-btn">Ya tengo contrasena &rarr;</button>
+      <button id="access-go-password" class="access-link-btn">Ya tengo contraseña &rarr;</button>
     </div>
 
     <div id="access-step-password" style="display:none;">
       <p class="eyebrow" style="margin-bottom:10px;">Acceso de administrador</p>
-      <h3>Introduce la contrasena</h3>
-      <input type="password" id="access-password-input" placeholder="Contrasena">
+      <h3>Introduce la contraseña</h3>
+      <input type="password" id="access-password-input" placeholder="Contraseña">
       <button id="access-password-btn" class="access-btn-primary">Entrar</button>
       <p id="access-password-status" class="access-status"></p>
       <button id="access-go-request" class="access-link-btn">&larr; Pedir acceso por email</button>
@@ -646,7 +646,7 @@
       })
     }).then(function(res) {
       if (res.ok) {
-        statusEl.textContent = 'Solicitud enviada. Two Blondes revisara tu peticion y, si la aprueba, te pasara la contrasena por email.';
+        statusEl.textContent = 'Solicitud enviada. Two Blondes revisara tu peticion y, si la aprueba, te pasara la contraseña por email.';
         statusEl.className = 'access-status success';
       } else {
         statusEl.textContent = 'No se pudo enviar. Revisa que el formulario este bien configurado.';
@@ -665,7 +665,7 @@
       closeModal();
       enterEditMode();
     } else {
-      statusEl.textContent = 'Contrasena incorrecta.';
+      statusEl.textContent = 'Contraseña incorrecta.';
       statusEl.className = 'access-status error';
     }
   });
