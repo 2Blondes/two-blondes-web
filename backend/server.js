@@ -11,7 +11,7 @@ const adminRoutes = require('./routes/admin');
 const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
-app.use(express.json({ limit: '12mb' })); // suficiente para las fotos en base64
+app.use(express.json({ limit: '25mb' })); // suficiente para varias fotos comprimidas en base64
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 

@@ -598,22 +598,44 @@
       credentials: 'include',
       body: JSON.stringify(payload)
     }).then(function(r) {
-      if (r.ok) { alert('Cambios guardados. Ya son visibles para todo el mundo.'); }
-      else { alert('No se pudo guardar. Puede que la sesion haya caducado.'); }
-    }).catch(function() { alert('Error de conexion al guardar.'); });
+      if (r.ok) {
+        alert('Cambios guardados. Ya son visibles para todo el mundo.');
+      } else {
+        return r.json().catch(function() { return {}; }).then(function(data) {
+          alert('No se pudo guardar (codigo ' + r.status + '): ' + (data.error || 'error desconocido'));
+        });
+      }
+    }).catch(function(err) { alert('Error de conexion al guardar: ' + err.message); });
   });
+
+  function compressImage(file, maxDim, quality, callback) {
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var img = new Image();
+      img.onload = function() {
+        var w = img.width, h = img.height;
+        if (w > h && w > maxDim) { h = Math.round(h * (maxDim / w)); w = maxDim; }
+        else if (h > maxDim) { w = Math.round(w * (maxDim / h)); h = maxDim; }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        callback(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
 
   document.getElementById('imgFileInput').addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file || pendingModelIndex === null) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
+    compressImage(file, 1200, 0.78, function(dataUrl) {
       syncTextFromDom();
-      state.models[pendingModelIndex].images.push(ev.target.result);
+      state.models[pendingModelIndex].images.push(dataUrl);
       galleryIndexes[pendingModelIndex] = state.models[pendingModelIndex].images.length - 1;
       renderModels();
-    };
-    reader.readAsDataURL(file);
+    });
     e.target.value = '';
   });
 
@@ -626,13 +648,11 @@
   document.getElementById('bgFileInput').addEventListener('change', function(e) {
     var file = e.target.files[0];
     if (!file || !pendingBgTarget) return;
-    var reader = new FileReader();
-    reader.onload = function(ev) {
+    compressImage(file, 1800, 0.75, function(dataUrl) {
       var conf = bgTargets[pendingBgTarget];
-      setPath(state, conf.path.concat('background'), ev.target.result);
+      setPath(state, conf.path.concat('background'), dataUrl);
       applySectionBackground(pendingBgTarget);
-    };
-    reader.readAsDataURL(file);
+    });
     e.target.value = '';
   });
 
