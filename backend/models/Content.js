@@ -16,15 +16,28 @@ function defaultData() {
     modelos: {
       eyebrow: 'La coleccion, de momento',
       heading: 'Dos camisetas. Cero relleno.',
-      intro: 'Empezamos con dos modelos de camiseta de manga corta para hombre. Nada de catalogos infinitos: primero afinamos estas dos, luego ampliamos.'
+      intro: 'Empezamos con dos modelos de camiseta de manga corta para hombre. Nada de catalogos infinitos: primero afinamos estas dos, luego ampliamos.',
+      background: ''
     },
     models: [
       { id: 'm1', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [] },
       { id: 'm2', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [] }
     ],
-    manifesto: { eyebrow: 'La marca', text: 'Dos personas, dos ideas claras, una camiseta a la vez.' },
-    social: { eyebrow: 'Siguenos', heading: 'No vendemos aqui', intro: 'Todo el proceso y los lanzamientos van primero a redes.', instagram: '@twoblondes', tiktok: '@twoblondes' },
-    footer: { text: 'Two Blondes (c) 2026' }
+    manifesto: {
+      eyebrow: 'La marca',
+      text: 'Dos personas, dos ideas claras, una camiseta a la vez.',
+      background: ''
+    },
+    social: {
+      eyebrow: 'Siguenos',
+      heading: 'No vendemos aqui',
+      intro: 'Todo el proceso y los lanzamientos van primero a redes.',
+      instagram: '@twoblondes',
+      tiktok: '@twoblondes',
+      background: ''
+    },
+    footer: { text: 'Two Blondes (c) 2026' },
+    spacers: { afterMarquee: 0, afterModelos: 0, afterHistoria: 0, afterSocial: 0 }
   };
 }
 
