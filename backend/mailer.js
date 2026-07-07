@@ -1,20 +1,33 @@
-const nodemailer = require('nodemailer');
+const BREVO_API_URL = 'https://api.brevo.com/v3/smtp/email';
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+async function sendViaBrevo({ to, subject, html }) {
+  const res = await fetch(BREVO_API_URL, {
+    method: 'POST',
+    headers: {
+      'accept': 'application/json',
+      'content-type': 'application/json',
+      'api-key': process.env.BREVO_API_KEY
+    },
+    body: JSON.stringify({
+      sender: { name: 'Two Blondes - Web', email: process.env.EMAIL_USER },
+      to: [{ email: to }],
+      subject,
+      htmlContent: html
+    })
+  });
+
+  if (!res.ok) {
+    const errorBody = await res.text();
+    throw new Error(`Brevo respondio con error ${res.status}: ${errorBody}`);
   }
-});
+}
 
 async function sendAccessRequestEmail(request) {
   const base = process.env.PUBLIC_URL || 'http://localhost:3000';
   const approveUrl = `${base}/api/admin/approve/${request.token}`;
   const rejectUrl = `${base}/api/admin/reject/${request.token}`;
 
-  await transporter.sendMail({
-    from: `"Two Blondes - Web" <${process.env.EMAIL_USER}>`,
+  await sendViaBrevo({
     to: process.env.OWNER_EMAIL,
     subject: 'Nueva solicitud de acceso admin - Two Blondes',
     html: `
@@ -31,8 +44,7 @@ async function sendAccessRequestEmail(request) {
 }
 
 async function sendApprovedEmail(email, plainPassword) {
-  await transporter.sendMail({
-    from: `"Two Blondes - Web" <${process.env.EMAIL_USER}>`,
+  await sendViaBrevo({
     to: email,
     subject: 'Acceso admin aprobado - Two Blondes',
     html: `
@@ -45,8 +57,7 @@ async function sendApprovedEmail(email, plainPassword) {
 }
 
 async function sendRejectedEmail(email) {
-  await transporter.sendMail({
-    from: `"Two Blondes - Web" <${process.env.EMAIL_USER}>`,
+  await sendViaBrevo({
     to: email,
     subject: 'Solicitud de acceso - Two Blondes',
     html: `<p>Tu solicitud de acceso admin a la web de Two Blondes no ha sido aprobada.</p>`
