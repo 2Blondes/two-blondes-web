@@ -148,6 +148,56 @@
   .access-status.error { color:#a13a3a; }
   .access-modal-close { position:absolute; top:14px; right:16px; background:none; border:none; font-size:1.4rem; line-height:1; cursor:pointer; color:var(--navy-soft); }
 
+  .garment-card { cursor: pointer; transition: transform 0.25s ease; }
+  .garment-card:hover { transform: translateY(-4px); }
+  .garment-card:hover .photo-slot img { transform: scale(1.035); }
+  .photo-slot img { transition: transform 0.4s ease; }
+  .garment-card .view-hint {
+    position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(19,31,58,0.75); color: var(--cream); font-size: 0.62rem;
+    font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 5px 12px; border-radius: 20px; opacity: 0; transition: opacity 0.25s ease;
+    pointer-events: none; z-index: 4;
+  }
+  .garment-card:hover .view-hint { opacity: 1; }
+  body.editing .garment-card { cursor: default; }
+  body.editing .garment-card:hover { transform: none; }
+  body.editing .view-hint { display: none; }
+
+  /* Panel de detalle de modelo */
+  #detail-modal {
+    display: none; position: fixed; inset: 0; z-index: 300;
+    background: rgba(19,31,58,0.72); align-items: center; justify-content: center; padding: 24px;
+  }
+  #detail-modal.open { display: flex; }
+  .detail-box {
+    background: var(--cream); max-width: 980px; width: 100%; max-height: 90vh;
+    overflow-y: auto; position: relative; display: grid; grid-template-columns: 1fr 1fr;
+    box-shadow: 0 40px 80px rgba(19,31,58,0.35);
+  }
+  @media (max-width: 760px) { .detail-box { grid-template-columns: 1fr; } }
+  .detail-close {
+    position: absolute; top: 16px; right: 16px; z-index: 5;
+    background: rgba(19,31,58,0.75); color: var(--cream); border: none;
+    width: 34px; height: 34px; border-radius: 50%; font-size: 1.2rem; cursor: pointer;
+  }
+  .detail-media { background: var(--line); padding: 0; }
+  .detail-main-photo {
+    aspect-ratio: 4/5; width: 100%; position: relative; overflow: hidden; background: var(--cream);
+  }
+  .detail-main-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+  .detail-main-photo img.active { display: block; }
+  .detail-main-photo .placeholder-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0.35; flex-direction: column; text-align: center; }
+  .detail-thumbs { display: flex; gap: 8px; padding: 14px; flex-wrap: wrap; background: var(--cream); }
+  .detail-thumbs .dthumb { width: 54px; height: 68px; border: 1px solid var(--line); overflow: hidden; cursor: pointer; opacity: 0.6; transition: opacity 0.2s ease, border-color 0.2s ease; }
+  .detail-thumbs .dthumb img { width: 100%; height: 100%; object-fit: cover; }
+  .detail-thumbs .dthumb.active { opacity: 1; border-color: var(--brass); }
+  .detail-info { padding: 56px 44px; display: flex; flex-direction: column; justify-content: center; }
+  .detail-info .model-index { position: static; font-size: 4.4rem; color: var(--line); margin-bottom: 10px; }
+  .detail-info h2 { font-family: 'Anton', sans-serif; font-size: 2.1rem; text-transform: uppercase; letter-spacing: 0.01em; margin-bottom: 18px; line-height: 1.05; }
+  .detail-info p { font-size: 1rem; color: var(--navy-soft); line-height: 1.7; }
+  .detail-info .eyebrow { margin-bottom: 8px; }
+
   @media (prefers-reduced-motion: reduce) { * { transition:none !important; } }
   a:focus-visible, button:focus-visible { outline:2px solid var(--brass); outline-offset:3px; }
 </style>
@@ -170,7 +220,8 @@
     <div id="access-step-request">
       <p class="eyebrow" style="margin-bottom:10px;">Acceso de administrador</p>
       <h3>Solicitar acceso</h3>
-      <p class="access-desc">Escribe tu email. Le llegara un aviso a Two Blondes y ellos deciden si te dan acceso.</p>
+      <p class="access-desc">Escribe tu nombre y email. Te llegara un correo para confirmar que es tuyo, y despues Two Blondes decidira si te da acceso.</p>
+      <input type="text" id="access-name-input" placeholder="Tu nombre">
       <input type="email" id="access-email-input" placeholder="tu@email.com">
       <button id="access-request-btn" class="access-btn-primary">Enviar solicitud</button>
       <p id="access-request-status" class="access-status"></p>
@@ -261,6 +312,21 @@
 
 <input type="file" id="imgFileInput" accept="image/*" style="display:none">
 <input type="file" id="bgFileInput" accept="image/*" style="display:none">
+
+<div id="detail-modal">
+  <div class="detail-box">
+    <button class="detail-close" id="detail-close-btn" aria-label="Cerrar">&times;</button>
+    <div class="detail-media">
+      <div class="detail-main-photo" id="detail-main-photo"></div>
+      <div class="detail-thumbs" id="detail-thumbs"></div>
+    </div>
+    <div class="detail-info">
+      <div class="model-index" id="detail-index"></div>
+      <h2 id="detail-name"></h2>
+      <p id="detail-desc"></p>
+    </div>
+  </div>
+</div>
 
 <script>
 (function() {
@@ -401,6 +467,7 @@
         '<button class="model-delete" data-delete-index="' + index + '" title="Eliminar modelo">&times;</button>' +
         '<div class="model-index">' + String(index + 1).padStart(2, '0') + '</div>' +
         galleryHtml(model, index) +
+        '<span class="view-hint">Ver detalles</span>' +
         thumbStripHtml(model, index) +
         '<div class="card-info">' +
           '<h3 class="model-name" contenteditable="false">' + (model.name || '') + '</h3>' +
@@ -419,7 +486,72 @@
     applyEditMode();
   }
 
+  var detailModalIndex = {};
+
+  function openDetailModal(cardIndex) {
+    if (document.body.classList.contains('editing')) return;
+    var model = state.models[cardIndex];
+    if (!model) return;
+    var images = model.images || [];
+    var current = 0;
+    detailModalIndex = { cardIndex: cardIndex, current: current };
+
+    document.getElementById('detail-index').textContent = String(cardIndex + 1).padStart(2, '0');
+    document.getElementById('detail-name').textContent = document.querySelector('.model-card[data-index="' + cardIndex + '"] .model-name').textContent;
+    document.getElementById('detail-desc').textContent = document.querySelector('.model-card[data-index="' + cardIndex + '"] .model-desc').textContent;
+
+    renderDetailMedia(images, current);
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+  function renderDetailMedia(images, current) {
+    var mainPhoto = document.getElementById('detail-main-photo');
+    var thumbs = document.getElementById('detail-thumbs');
+
+    if (images.length === 0) {
+      mainPhoto.innerHTML = '<div class="placeholder-note"><span class="icon">+</span><span>Sin fotos todavia</span></div>';
+      thumbs.innerHTML = '';
+      return;
+    }
+
+    mainPhoto.innerHTML = images.map(function(src, i) {
+      return '<img class="' + (i === current ? 'active' : '') + '" src="' + src + '" data-dimg="' + i + '">';
+    }).join('');
+
+    if (images.length > 1) {
+      thumbs.innerHTML = images.map(function(src, i) {
+        return '<div class="dthumb' + (i === current ? ' active' : '') + '" data-dthumb="' + i + '"><img src="' + src + '"></div>';
+      }).join('');
+    } else {
+      thumbs.innerHTML = '';
+    }
+
+    thumbs.querySelectorAll('[data-dthumb]').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var idx = parseInt(el.getAttribute('data-dthumb'), 10);
+        detailModalIndex.current = idx;
+        renderDetailMedia(images, idx);
+      });
+    });
+  }
+
+  function closeDetailModal() {
+    document.getElementById('detail-modal').classList.remove('open');
+  }
+
+  document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
+  document.getElementById('detail-modal').addEventListener('click', function(e) {
+    if (e.target.id === 'detail-modal') closeDetailModal();
+  });
+
   function attachModelEvents(grid) {
+    grid.querySelectorAll('.model-card').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('[data-delete-index], [data-nav], [data-add-photo], [data-del-card], .thumb-strip, .model-name, .model-desc')) return;
+        var idx = parseInt(card.getAttribute('data-index'), 10);
+        openDetailModal(idx);
+      });
+    });
     grid.querySelectorAll('[data-add-photo]').forEach(function(el) {
       el.addEventListener('click', function() {
         pendingModelIndex = parseInt(el.getAttribute('data-add-photo'), 10);
@@ -548,6 +680,7 @@
   });
 
   document.getElementById('access-request-btn').addEventListener('click', function() {
+    var name = document.getElementById('access-name-input').value.trim();
     var email = document.getElementById('access-email-input').value.trim();
     var statusEl = document.getElementById('access-request-status');
     if (!email || email.indexOf('@') === -1) {
@@ -557,10 +690,10 @@
     fetch('/api/admin/request', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: email })
+      body: JSON.stringify({ name: name, email: email })
     }).then(function(r) { return r.json(); }).then(function(data) {
       if (data.ok) {
-        statusEl.textContent = 'Solicitud enviada. Si la aprueban, recibiras la contrasena por email.';
+        statusEl.textContent = 'Revisa tu correo y confirma tu email para enviar la solicitud.';
         statusEl.className = 'access-status success';
       } else {
         statusEl.textContent = data.error || 'No se pudo enviar.'; statusEl.className = 'access-status error';
