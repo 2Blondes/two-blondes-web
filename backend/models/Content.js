@@ -20,8 +20,8 @@ function defaultData() {
       background: ''
     },
     models: [
-      { id: 'm1', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [] },
-      { id: 'm2', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [] }
+      { id: 'm1', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [], price: 0, stock: { S: 5, M: 5, L: 5 } },
+      { id: 'm2', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [], price: 0, stock: { S: 5, M: 5, L: 5 } }
     ],
     manifesto: {
       eyebrow: 'La marca',
@@ -37,7 +37,17 @@ function defaultData() {
       background: ''
     },
     footer: { text: 'Two Blondes (c) 2026' },
-    spacers: { afterMarquee: 0, afterModelos: 0, afterHistoria: 0, afterSocial: 0 }
+    spacers: { afterMarquee: 0, afterModelos: 0, afterHistoria: 0, afterSocial: 0 },
+    popup: {
+      eyebrow: 'Bienvenida',
+      heading: '10% en tu primer pedido',
+      desc: 'Suscribete y te lo enviamos ahora mismo por email.',
+      code: 'TWOBLONDES10'
+    },
+    newsletter: {
+      eyebrow: 'Acceso prioritario',
+      heading: 'Entra antes al proximo drop'
+    }
   };
 }
 
