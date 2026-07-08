@@ -22,6 +22,24 @@ async function sendViaBrevo({ to, subject, html }) {
   }
 }
 
+async function sendVerificationEmail(request) {
+  const base = process.env.PUBLIC_URL || 'http://localhost:3000';
+  const verifyUrl = `${base}/api/admin/verify/${request.token}`;
+
+  await sendViaBrevo({
+    to: request.email,
+    subject: 'Confirma tu solicitud de acceso - Two Blondes',
+    html: `
+      <p>Hola${request.name ? ' ' + request.name : ''},</p>
+      <p>Has pedido acceso de administrador a la web de Two Blondes. Confirma tu email para que se envie la solicitud:</p>
+      <p>
+        <a href="${verifyUrl}" style="background:#16223F;color:#F5EFE1;padding:10px 18px;border-radius:4px;text-decoration:none;">Confirmar mi email</a>
+      </p>
+      <p style="color:#888;font-size:0.85em;">Si no has sido tu quien lo ha pedido, ignora este correo.</p>
+    `
+  });
+}
+
 async function sendAccessRequestEmail(request) {
   const base = process.env.PUBLIC_URL || 'http://localhost:3000';
   const approveUrl = `${base}/api/admin/approve/${request.token}`;
@@ -29,10 +47,12 @@ async function sendAccessRequestEmail(request) {
 
   await sendViaBrevo({
     to: process.env.OWNER_EMAIL,
-    subject: 'Nueva solicitud de acceso admin - Two Blondes',
+    subject: 'Nueva solicitud de acceso admin (verificada) - Two Blondes',
     html: `
-      <p>Alguien ha pedido acceso de administrador a la web de Two Blondes.</p>
+      <p>Alguien ha confirmado su email y pide acceso de administrador a la web de Two Blondes.</p>
+      <p><strong>Nombre:</strong> ${request.name || '(no indicado)'}</p>
       <p><strong>Email:</strong> ${request.email}</p>
+      <p><strong>Motivo:</strong> ${request.motivo || '(no indicado)'}</p>
       <p>
         <a href="${approveUrl}" style="background:#16223F;color:#F5EFE1;padding:10px 18px;border-radius:4px;text-decoration:none;">Aprobar acceso</a>
         &nbsp;&nbsp;
@@ -64,4 +84,9 @@ async function sendRejectedEmail(email) {
   });
 }
 
-module.exports = { sendAccessRequestEmail, sendApprovedEmail, sendRejectedEmail };
+module.exports = {
+  sendVerificationEmail,
+  sendAccessRequestEmail,
+  sendApprovedEmail,
+  sendRejectedEmail
+};

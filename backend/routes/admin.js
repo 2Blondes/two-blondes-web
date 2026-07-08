@@ -3,12 +3,17 @@ const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const AccessRequest = require('../models/AccessRequest');
-const { sendAccessRequestEmail, sendApprovedEmail, sendRejectedEmail } = require('../mailer');
+const {
+  sendVerificationEmail,
+  sendAccessRequestEmail,
+  sendApprovedEmail,
+  sendRejectedEmail
+} = require('../mailer');
 
 const router = express.Router();
 
 function generatePassword() {
-  return crypto.randomBytes(6).toString('hex'); // 12 caracteres
+  return crypto.randomBytes(6).toString('hex');
 }
 
 function setAdminCookie(res) {
@@ -21,15 +26,18 @@ function setAdminCookie(res) {
   });
 }
 
-// Alguien pide acceso -> se guarda y se avisa por email al dueño
 router.post('/request', async (req, res) => {
   try {
     const email = (req.body.email || '').trim().toLowerCase();
+    const name = (req.body.name || '').trim().slice(0, 100);
+    const motivo = (req.body.motivo || '').trim().slice(0, 300);
+
     if (!email || !email.includes('@')) {
       return res.status(400).json({ error: 'Email invalido' });
     }
-    const request = await AccessRequest.create({ email });
-    await sendAccessRequestEmail(request);
+
+    const request = await AccessRequest.create({ email, name, motivo });
+    await sendVerificationEmail(request);
     res.json({ ok: true });
   } catch (err) {
     console.error('Error en /request:', err);
@@ -37,11 +45,33 @@ router.post('/request', async (req, res) => {
   }
 });
 
-// El dueño pulsa "Aprobar" desde el email
+router.get('/verify/:token', async (req, res) => {
+  try {
+    const request = await AccessRequest.findOne({ token: req.params.token });
+    if (!request) return res.status(404).send('Solicitud no encontrada.');
+    if (request.status !== 'pending_verification') {
+      return res.send('Este email ya estaba confirmado.');
+    }
+
+    request.status = 'pending';
+    request.verifiedAt = new Date();
+    await request.save();
+
+    await sendAccessRequestEmail(request);
+    res.send('Email confirmado. Tu solicitud ha sido enviada a Two Blondes, te avisaremos si se aprueba.');
+  } catch (err) {
+    console.error('Error en /verify:', err);
+    res.status(500).send('Error al confirmar el email.');
+  }
+});
+
 router.get('/approve/:token', async (req, res) => {
   try {
     const request = await AccessRequest.findOne({ token: req.params.token });
     if (!request) return res.status(404).send('Solicitud no encontrada.');
+    if (request.status === 'pending_verification') {
+      return res.send('Esta persona todavia no ha confirmado su email.');
+    }
     if (request.status !== 'pending') return res.send('Esta solicitud ya se resolvio antes.');
 
     const plainPassword = generatePassword();
@@ -58,7 +88,6 @@ router.get('/approve/:token', async (req, res) => {
   }
 });
 
-// El dueño pulsa "Rechazar" desde el email
 router.get('/reject/:token', async (req, res) => {
   try {
     const request = await AccessRequest.findOne({ token: req.params.token });
@@ -77,7 +106,6 @@ router.get('/reject/:token', async (req, res) => {
   }
 });
 
-// Login con la contraseña maestra o con una contraseña aprobada por email
 router.post('/login', async (req, res) => {
   try {
     const { password } = req.body;
