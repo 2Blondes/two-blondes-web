@@ -4,7 +4,8 @@
   "description": "Backend de Two Blondes: contenido editable + acceso admin por email",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "start:test": "node server_test.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
