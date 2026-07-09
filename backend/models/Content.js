@@ -20,8 +20,8 @@ function defaultData() {
       background: ''
     },
     models: [
-      { id: 'm1', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [], price: 0, stock: { S: 5, M: 5, L: 5 } },
-      { id: 'm2', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [], price: 0, stock: { S: 5, M: 5, L: 5 } }
+      { id: 'm1', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [], price: 0, stock: { S: 5, M: 5, L: 5 }, rating: 4.7, reviewCount: 32 },
+      { id: 'm2', name: 'Nombre por definir', desc: 'Descripcion del corte, tejido y detalles de este modelo.', images: [], price: 0, stock: { S: 5, M: 5, L: 5 }, rating: 4.7, reviewCount: 32 }
     ],
     manifesto: {
       eyebrow: 'La marca',
@@ -47,6 +47,11 @@ function defaultData() {
     newsletter: {
       eyebrow: 'Acceso prioritario',
       heading: 'Entra antes al proximo drop'
+    },
+    offer: {
+      text: 'Envio gratis a partir de 60 EUR',
+      threshold: 60,
+      endsAt: null
     }
   };
 }
