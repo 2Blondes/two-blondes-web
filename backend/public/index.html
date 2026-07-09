@@ -357,6 +357,8 @@
 
   .toast { position:fixed; bottom:24px; left:50%; transform:translate(-50%,140%); background:var(--navy); color:var(--cream); padding:14px 22px; border-radius:3px; font-size:0.8rem; z-index:400; transition:transform 0.3s ease; max-width:90vw; text-align:center; }
   .toast.show { transform:translate(-50%,0); }
+  /* Small badge next to bag icon when cart restored */
+  #restoredBadge { position:absolute; top:-6px; right:-6px; background:#B23A2E; color:var(--cream); font-size:0.62rem; padding:4px 6px; border-radius:10px; display:none; z-index:450; font-weight:700; }
   /* Campo de nota ultra-minimalista en ficha de producto */
   .detail-note { width:100%; resize:none; border:0; border-bottom:1px solid #000; background:transparent; padding:8px 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.02em; font-weight:700; color:var(--navy); outline:none; margin:12px 0; }
   .detail-note::placeholder { color:rgba(19,31,58,0.28); font-weight:700; }
@@ -431,6 +433,7 @@
     <button class="bag-btn" id="openCartBtn" aria-label="Abrir bolsa" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
       <span class="bag-count" id="cartCount">0</span>
+      <span id="restoredBadge">+0</span>
     </button>
     <button class="hamburger-btn" id="openMobileMenuBtn" aria-label="Abrir menu" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -1150,7 +1153,7 @@
           });
         }
         renderCart();
-        if (restored) showRestoreBanner();
+        if (restored) { showRestoreBanner(); showRestoreBadge(); }
       })
       .catch(function(err) { console.error('No se pudo cargar el contenido', err); });
   }
@@ -1342,6 +1345,16 @@
     b.textContent = 'Restaurado tu bolsa';
     b.classList.add('show');
     setTimeout(function() { b.classList.remove('show'); }, 2200);
+  }
+
+  function showRestoreBadge() {
+    var badge = document.getElementById('restoredBadge');
+    if (!badge) return;
+    var qty = cart.reduce(function(a,l){ return a + (l.qty||0); }, 0);
+    if (qty <= 0) return;
+    badge.textContent = '+' + qty;
+    badge.style.display = 'inline-block';
+    setTimeout(function() { badge.style.display = 'none'; }, 2200);
   }
   function saveNotesToStorage() {
     try {
