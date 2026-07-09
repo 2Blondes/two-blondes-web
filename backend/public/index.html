@@ -359,6 +359,10 @@
   .toast.show { transform:translate(-50%,0); }
   /* Small badge next to bag icon when cart restored */
   #restoredBadge { position:absolute; top:-6px; right:-6px; background:#B23A2E; color:var(--cream); font-size:0.62rem; padding:4px 6px; border-radius:10px; display:none; z-index:450; font-weight:700; }
+  #syncDot { position:absolute; top:6px; right:22px; width:8px; height:8px; border-radius:50%; background:transparent; box-shadow:none; transition:background 0.2s ease; z-index:460; }
+  #syncDot.syncing { background:#B8863F; box-shadow:0 0 6px rgba(184,134,63,0.6); display:inline-block; }
+  #syncDot.ok { background:#3a6b3a; display:inline-block; }
+  #syncDot.err { background:#a13a3a; display:inline-block; }
   /* Campo de nota ultra-minimalista en ficha de producto */
   .detail-note { width:100%; resize:none; border:0; border-bottom:1px solid #000; background:transparent; padding:8px 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.02em; font-weight:700; color:var(--navy); outline:none; margin:12px 0; }
   .detail-note::placeholder { color:rgba(19,31,58,0.28); font-weight:700; }
@@ -434,6 +438,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 8h12l-1 12H7L6 8Z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
       <span class="bag-count" id="cartCount">0</span>
       <span id="restoredBadge">+0</span>
+      <span id="syncDot" title="Sync status" style="display:none"></span>
     </button>
     <button class="hamburger-btn" id="openMobileMenuBtn" aria-label="Abrir menu" type="button">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
@@ -1327,6 +1332,8 @@
   /* Persistence helpers: save/load cart and customer notes to localStorage */
   function saveCartToStorage() {
     try { localStorage.setItem('tb_cart', JSON.stringify(cart)); } catch (e) {}
+    // trigger remote sync
+    syncCartToServer();
   }
   function loadCartFromStorage() {
     try {
@@ -1356,12 +1363,49 @@
     badge.style.display = 'inline-block';
     setTimeout(function() { badge.style.display = 'none'; }, 2200);
   }
+
+  /* Remote sync functions */
+  var _syncTimeout = null;
+  function setSyncDot(state) {
+    var d = document.getElementById('syncDot'); if (!d) return;
+    d.className = '';
+    if (state === 'syncing') d.classList.add('syncing');
+    if (state === 'ok') d.classList.add('ok');
+    if (state === 'err') d.classList.add('err');
+  }
+
+  function syncCartToServer() {
+    if (_syncTimeout) clearTimeout(_syncTimeout);
+    _syncTimeout = setTimeout(function() {
+      setSyncDot('syncing');
+      fetch('/api/cart', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ cart: cart }) })
+        .then(function(r){ return r.json(); })
+        .then(function(j){ if (j && j.ok) setSyncDot('ok'); else setSyncDot('err'); setTimeout(function(){ setSyncDot(''); }, 1200); })
+        .catch(function(){ setSyncDot('err'); setTimeout(function(){ setSyncDot(''); }, 1200); });
+    }, 350);
+  }
+
+  function syncNotesToServer() {
+    if (_syncTimeout) clearTimeout(_syncTimeout);
+    _syncTimeout = setTimeout(function() {
+      setSyncDot('syncing');
+      // collect notes from state
+      var notes = {};
+      if (state && state.models) state.models.forEach(function(m, i){ if (m.customerNote) notes[m.id || i] = m.customerNote; });
+      fetch('/api/notes', { method: 'POST', headers: { 'Content-Type':'application/json' }, body: JSON.stringify({ notes: notes }) })
+        .then(function(r){ return r.json(); })
+        .then(function(j){ if (j && j.ok) setSyncDot('ok'); else setSyncDot('err'); setTimeout(function(){ setSyncDot(''); }, 1200); })
+        .catch(function(){ setSyncDot('err'); setTimeout(function(){ setSyncDot(''); }, 1200); });
+    }, 350);
+  }
   function saveNotesToStorage() {
     try {
       var notes = {};
       if (state && state.models) state.models.forEach(function(m, i){ if (m.customerNote) notes[m.id || i] = m.customerNote; });
       localStorage.setItem('tb_notes', JSON.stringify(notes));
     } catch (e) {}
+    // trigger remote sync
+    syncNotesToServer();
   }
   function loadNotesFromStorage() {
     try {
