@@ -344,6 +344,7 @@
   .size-btn { border:1px solid var(--navy); background:transparent; padding:9px 14px; font-size:0.76rem; font-weight:700; border-radius:2px; min-width:44px; cursor:pointer; font-family:'Archivo', sans-serif; }
   .size-btn.selected { background:var(--navy); color:var(--cream); }
   .size-btn.sold-out { border-color:var(--line); color:var(--navy-soft); text-decoration:line-through; cursor:not-allowed; }
+  .size-btn.sold-out { background:#e9e9e9; color:#6b6b6b; text-decoration:none; }
   .stock-note { font-size:0.74rem; color:#B23A2E; margin-bottom:14px; min-height:16px; }
   .detail-price { font-weight:700; font-size:1.05rem; color:var(--navy-soft); margin-bottom:6px; outline:none; }
 
@@ -356,6 +357,16 @@
 
   .toast { position:fixed; bottom:24px; left:50%; transform:translate(-50%,140%); background:var(--navy); color:var(--cream); padding:14px 22px; border-radius:3px; font-size:0.8rem; z-index:400; transition:transform 0.3s ease; max-width:90vw; text-align:center; }
   .toast.show { transform:translate(-50%,0); }
+  /* Campo de nota ultra-minimalista en ficha de producto */
+  .detail-note { width:100%; resize:none; border:0; border-bottom:1px solid #000; background:transparent; padding:8px 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.02em; font-weight:700; color:var(--navy); outline:none; margin:12px 0; }
+  .detail-note::placeholder { color:rgba(19,31,58,0.28); font-weight:700; }
+  .detail-reserve-btn { display:block; width:100%; text-align:center; background:transparent; color:var(--navy); border:1px solid var(--navy); padding:12px; font-size:0.76rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border-radius:2px; cursor:pointer; margin-top:8px; }
+  .detail-reserve-btn:disabled { opacity:0.45; cursor:not-allowed; }
+  .inline-toast { position:relative; display:inline-block; margin-top:8px; padding:6px 10px; background:var(--navy); color:var(--cream); border-radius:3px; font-size:0.75rem; transform:translateY(6px); opacity:0; transition:opacity 0.22s ease, transform 0.22s ease; }
+  .inline-toast.show { opacity:1; transform:translateY(0); }
+  /* Express checkout buttons */
+  .express-checkout { display:flex; gap:10px; margin-bottom:12px; }
+  .express-checkout button { flex:1; padding:10px; border-radius:4px; border:1px solid var(--line); background:transparent; font-weight:700; text-transform:uppercase; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -530,7 +541,10 @@
       <button class="size-guide-link" id="openSizeGuideBtn" type="button">Ver guia de tallas</button>
       <div class="size-row" id="detail-sizes"></div>
       <p class="stock-note" id="detail-stock-note"></p>
+      <textarea id="detail-note" class="detail-note" rows="2" placeholder="AÑADE UNA NOTA PERSONALIZADA O DUDA (OPCIONAL)"></textarea>
       <button class="btn-primary" id="detail-add-btn" type="button">Anadir a la bolsa</button>
+      <button class="detail-reserve-btn" id="detail-reserve-btn" type="button">Reservar</button>
+      <div id="detail-inline-toast" class="inline-toast" style="display:none"></div>
 
       <div class="crosssell">
         <h4>Combina con</h4>
@@ -609,6 +623,7 @@
         <tr><td>L</td><td>108-114</td><td>72</td></tr>
       </tbody>
     </table>
+      <button id="sizeGuideHelpBtn" class="btn-secondary" style="margin-top:12px;">Dudas? Chatea por WhatsApp</button>
   </div>
 </div>
 
@@ -877,7 +892,7 @@
     var model = state.models[currentDetailIndex];
     wrap.innerHTML = SIZES.map(function(size) {
       var soldOut = (model.stock[size] || 0) <= 0;
-      return '<button class="size-btn' + (soldOut ? ' sold-out' : '') + '" data-size="' + size + '" type="button" ' + (soldOut ? 'disabled' : '') + '>' + size + '</button>';
+      return '<button class="size-btn' + (soldOut ? ' sold-out' : '') + '" data-size="' + size + '" type="button" ' + (soldOut ? 'disabled' : '') + '>' + (soldOut ? 'SOLD OUT' : size) + '</button>';
     }).join('');
 
     wrap.querySelectorAll('.size-btn:not(.sold-out)').forEach(function(btn) {
@@ -1448,13 +1463,15 @@
       msg.className = 'popup-msg error';
       return;
     }
+    // Apply 10% discount and close modal
+    appliedDiscount = 0.10;
     var code = (state.popup && state.popup.code) || 'TWOBLONDES10';
-    msg.textContent = 'Listo. Tu codigo ' + code + ' ya esta en camino.';
+    msg.textContent = 'Listo. Tu codigo ' + code + ' ya esta en camino. 10% aplicado.';
     msg.className = 'popup-msg ok';
     localStorage.setItem('tb_popup_dismissed', 'true');
     setTimeout(function() {
       document.getElementById('popupOverlay').classList.remove('open');
-    }, 1800);
+    }, 900);
   });
 
   /* ============================================================
@@ -1462,16 +1479,8 @@
      ============================================================ */
   document.getElementById('footerNewsletterForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    var input = document.getElementById('footerNewsletterEmail');
-    var msg = document.getElementById('footerNewsletterMsg');
-    if (!isValidEmail(input.value)) {
-      msg.textContent = 'Escribe un email valido.';
-      msg.style.color = '#B23A2E';
-      return;
-    }
-    msg.textContent = 'Listo. Te avisaremos antes del proximo drop.';
-    msg.style.color = 'var(--navy-soft)';
-    input.value = '';
+    // Open WhatsApp chat for VIP signup instead of a passive form
+    openWhatsApp(TB_WHATSAPP_NUMBER, 'Hola Two Blondes, quiero apuntarme a la lista VIP para entrar antes al próximo drop.');
   });
 
   /* ============================================================
@@ -1597,6 +1606,184 @@
       fill.style.width = Math.min(100, (subtotal / threshold) * 100) + '%';
     }
   }
+
+  /* ============================================================
+     UTIL: WhatsApp opener, inline toast, modal escape handler
+     ============================================================ */
+  var TB_WHATSAPP_NUMBER = '34621400364';
+  var appliedDiscount = 0;
+
+  function isMobile() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(navigator.userAgent || navigator.vendor || window.opera);
+  }
+
+  function openWhatsApp(number, text) {
+    var encoded = encodeURIComponent(text || '');
+    // Use wa.me for native linking across devices
+    var url = 'https://wa.me/' + number + '?text=' + encoded;
+    window.open(url, '_blank');
+  }
+
+  function showInlineToast(el, text) {
+    var toast = document.getElementById('detail-inline-toast');
+    toast.textContent = text;
+    toast.style.display = 'inline-block';
+    setTimeout(function() { toast.classList.add('show'); }, 10);
+    setTimeout(function() { toast.classList.remove('show'); setTimeout(function(){ toast.style.display='none'; },220); }, 2000);
+  }
+
+  // Close common overlays & modals with Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.getElementById('detail-modal').classList.remove('open');
+      document.getElementById('sizeGuideModal').classList.remove('open');
+      document.getElementById('checkoutModal').classList.remove('open');
+      document.getElementById('wishOverlay').classList.remove('open');
+      document.getElementById('popupOverlay').classList.remove('open');
+      document.getElementById('sideCart').classList.remove('open');
+      document.getElementById('cartOverlay').classList.remove('open');
+      document.getElementById('access-modal').classList.remove('open');
+    }
+  });
+
+  // Ensure overlays close on click (delegation for any new overlays)
+  document.addEventListener('click', function(e) {
+    if (e.target.classList && e.target.classList.contains('overlay')) closeCart();
+  });
+
+  // Reserve button in detail modal
+  document.getElementById('detail-reserve-btn').addEventListener('click', function() {
+    if (currentDetailIndex === null) return;
+    if (!currentDetailSize) {
+      // show inline notification near the button
+      showInlineToast(document.getElementById('detail-reserve-btn'), 'Elige una talla');
+      return;
+    }
+    var model = state.models[currentDetailIndex];
+    var name = document.getElementById('detail-name').textContent || model.name;
+    var price = (model.price || 0) + ' EUR';
+    var note = document.getElementById('detail-note').value.trim();
+    var msg;
+    if (note) {
+      msg = "Hola Two Blondes, me interesa el '" + name + "' (" + price + ") en talla " + currentDetailSize + ". Nota personalizada: " + note;
+      if (window.TBSystem && typeof window.TBSystem.setCustomerNote === 'function') window.TBSystem.setCustomerNote(currentDetailIndex, note);
+    } else {
+      msg = "Hola Two Blondes, me interesa el '" + name + "' (" + price + ") en talla " + currentDetailSize + " si tenéis disponibilidad.";
+      if (window.TBSystem && typeof window.TBSystem.setCustomerNote === 'function') window.TBSystem.setCustomerNote(currentDetailIndex, '');
+    }
+    openWhatsApp(TB_WHATSAPP_NUMBER, msg);
+  });
+
+  // Open cart when adding to bag for better UX
+  var _origAddToCart = addToCart;
+  addToCart = function(modelIndex, size) {
+    _origAddToCart(modelIndex, size);
+    // slide cart in
+    openCart();
+  };
+
+  // Make sold-out copy uppercase for UX
+  var _origUpdateDetailAddButton = updateDetailAddButton;
+  updateDetailAddButton = function() {
+    var btn = document.getElementById('detail-add-btn');
+    if (!btn) return;
+    if (!currentDetailSize) {
+      btn.disabled = false;
+      btn.textContent = 'Elige una talla';
+      return;
+    }
+    var model = state.models[currentDetailIndex];
+    var stock = model.stock[currentDetailSize];
+    if (stock <= 0) {
+      btn.disabled = true;
+      btn.textContent = 'SOLD OUT';
+    } else {
+      btn.disabled = false;
+      btn.textContent = 'Anadir a la bolsa';
+    }
+  };
+
+  // Newsletter "Apuntarme" should open WhatsApp VIP chat
+  document.getElementById('footerNewsletterForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    openWhatsApp(TB_WHATSAPP_NUMBER, 'Hola Two Blondes, quiero apuntarme a la lista VIP para entrar antes al próximo drop.');
+  });
+
+  // Size guide help button to WhatsApp
+  document.getElementById('sizeGuideHelpBtn').addEventListener('click', function() {
+    openWhatsApp(TB_WHATSAPP_NUMBER, 'Hola Two Blondes, tengo dudas sobre qué talla elegir para mi altura/peso.');
+  });
+
+  // Popup newsletter: handled earlier (applies discount and closes modal)
+
+  // Express checkout buttons (UI only)
+  var checkoutBox = document.querySelector('.checkout-box');
+  if (checkoutBox) {
+    var expressHtml = '<div class="express-checkout">' +
+      '<button id="express-apple">Apple Pay</button>' +
+      '<button id="express-google">Google Pay</button>' +
+    '</div>';
+    checkoutBox.insertAdjacentHTML('afterbegin', expressHtml);
+    document.getElementById('express-apple').addEventListener('click', function() {
+      showToast('Pago express simulado (Apple Pay)');
+      document.getElementById('checkoutModal').classList.remove('open');
+      cart = [];
+      renderCart();
+    });
+    document.getElementById('express-google').addEventListener('click', function() {
+      showToast('Pago express simulado (Google Pay)');
+      document.getElementById('checkoutModal').classList.remove('open');
+      cart = [];
+      renderCart();
+    });
+  }
+
+  // Override openCheckout to apply discount
+  var _origOpenCheckout = openCheckout;
+  openCheckout = function() {
+    var subtotal = cart.reduce(function(a, l) { return a + state.models[l.modelIndex].price * l.qty; }, 0);
+    var discount = subtotal * (appliedDiscount || 0);
+    var lines = cart.map(function(l) {
+      var model = state.models[l.modelIndex];
+      return '<div><span>' + cartModelName(l.modelIndex) + ' (' + l.size + ') x' + l.qty + '</span><span>' + (model.price * l.qty) + ' EUR</span></div>';
+    }).join('');
+    document.getElementById('checkoutSummary').innerHTML = lines +
+      '<div style="font-weight:700;border-top:1px solid var(--line);margin-top:8px;padding-top:8px;">' +
+      '<div><span>Subtotal</span><span>' + subtotal + ' EUR</span></div>' +
+      (discount > 0 ? ('<div><span>Descuento</span><span>-' + discount.toFixed(2) + ' EUR</span></div>') : '') +
+      '<div style="border-top:1px solid var(--line);margin-top:8px;padding-top:8px;"><span>Total</span><span>' + (subtotal - discount).toFixed(2) + ' EUR</span></div>' +
+      '</div>';
+    appliedDiscount = 0; // reset after applied
+    closeCart();
+    document.getElementById('checkoutModal').classList.add('open');
+  };
+
+  // Test helper for console
+  // Expose a global TBSystem object as centralized state/controller
+  window.TBSystem = {
+    getState: function() { return state; },
+    cart: cart,
+    addToCart: function(mi, size) { return addToCart(mi, size); },
+    changeQty: function(mi, size, delta) { return changeQty(mi, size, delta); },
+    removeLine: function(mi, size) { return removeLine(mi, size); },
+    applyDiscount: function(fraction) { appliedDiscount = fraction; },
+    setCustomerNote: function(modelIndex, note) { if (state && state.models && state.models[modelIndex]) state.models[modelIndex].customerNote = note; },
+    openWhatsApp: openWhatsApp
+  };
+
+  window.testTwoBlondesSystem = function() {
+    console.info('TwoBlondes test helper running...');
+    if (!state || !state.models || state.models.length === 0) return console.warn('No hay modelos en el estado.');
+    var idx = 0;
+    var size = Object.keys(state.models[idx].stock).find(function(s){ return state.models[idx].stock[s] > 0; }) || 'S';
+    TBSystem.addToCart(idx, size);
+    document.getElementById('detail-note').value = 'Prueba de nota desde testTwoBlondesSystem';
+    TBSystem.setCustomerNote(idx, 'Prueba de nota desde testTwoBlondesSystem');
+    var name = cartModelName(idx);
+    var price = state.models[idx].price + ' EUR';
+    var msg = "(TEST) Hola Two Blondes, me interesa el '" + name + "' (" + price + ") en talla " + size + ". Nota personalizada: Prueba";
+    console.info('Simulated WhatsApp URL:', 'https://wa.me/' + TB_WHATSAPP_NUMBER + '?text=' + encodeURIComponent(msg));
+  };
 
   /* ============================================================
      CONTADOR DE OFERTA (arriba de la web)
