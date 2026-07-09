@@ -367,6 +367,9 @@
   /* Express checkout buttons */
   .express-checkout { display:flex; gap:10px; margin-bottom:12px; }
   .express-checkout button { flex:1; padding:10px; border-radius:4px; border:1px solid var(--line); background:transparent; font-weight:700; text-transform:uppercase; cursor:pointer; }
+  /* Restore banner (small, ultra-minimal) */
+  #restoreBanner { position:fixed; top:84px; left:50%; transform:translateX(-50%) translateY(-8px); background:var(--navy); color:var(--cream); padding:8px 14px; border-radius:3px; font-size:0.82rem; z-index:410; opacity:0; transition:opacity 0.25s ease, transform 0.25s ease; }
+  #restoreBanner.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -628,6 +631,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="restoreBanner" role="status" aria-live="polite" style="display:block"></div>
 
 <script>
 (function() {
@@ -1135,7 +1139,7 @@
         renderFixedFields();
         renderModels();
         // Load persisted cart and adjust stock accordingly
-        loadCartFromStorage();
+        var restored = loadCartFromStorage();
         // Rehydrate stock from persisted cart
         if (cart && cart.length) {
           cart.forEach(function(line) {
@@ -1146,6 +1150,7 @@
           });
         }
         renderCart();
+        if (restored) showRestoreBanner();
       })
       .catch(function(err) { console.error('No se pudo cargar el contenido', err); });
   }
@@ -1323,11 +1328,20 @@
   function loadCartFromStorage() {
     try {
       var raw = localStorage.getItem('tb_cart');
-      if (!raw) return;
+      if (!raw) return false;
       var parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return;
+      if (!Array.isArray(parsed)) return false;
       cart = parsed;
+      return true;
     } catch (e) { cart = []; }
+  }
+
+  function showRestoreBanner() {
+    var b = document.getElementById('restoreBanner');
+    if (!b) return;
+    b.textContent = 'Restaurado tu bolsa';
+    b.classList.add('show');
+    setTimeout(function() { b.classList.remove('show'); }, 2200);
   }
   function saveNotesToStorage() {
     try {
