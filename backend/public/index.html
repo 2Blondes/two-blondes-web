@@ -1003,6 +1003,10 @@
 
   function openDetailModal(cardIndex) {
     if (document.body.classList.contains('editing')) return;
+    window.location.hash = 'model-' + cardIndex;
+  }
+
+  function openDetailPage(cardIndex) {
     var model = state.models[cardIndex];
     if (!model) return;
     var images = model.images || [];
@@ -1023,6 +1027,18 @@
     renderCrosssell(cardIndex);
     updateDetailAddButton();
     document.getElementById('detail-modal').classList.add('open');
+  }
+
+  function handleHashChange() {
+    var hash = window.location.hash || '';
+    if (hash.indexOf('#model-') === 0) {
+      var index = parseInt(hash.replace('#model-', ''), 10);
+      if (!isNaN(index) && state && state.models && state.models[index]) {
+        openDetailPage(index);
+        return;
+      }
+    }
+    closeDetailModal(true);
   }
 
   function renderDetailSizes() {
@@ -1131,14 +1147,20 @@
     });
   }
 
-  function closeDetailModal() {
+  function closeDetailModal(skipHash) {
     document.getElementById('detail-modal').classList.remove('open');
+    if (!skipHash && window.location.hash.indexOf('#model-') === 0) {
+      history.pushState('', document.title, window.location.pathname + window.location.search);
+    }
   }
 
-  document.getElementById('detail-close-btn').addEventListener('click', closeDetailModal);
+  document.getElementById('detail-close-btn').addEventListener('click', function() {
+    closeDetailModal();
+  });
   document.getElementById('detail-modal').addEventListener('click', function(e) {
     if (e.target.id === 'detail-modal') closeDetailModal();
   });
+  window.addEventListener('hashchange', handleHashChange);
 
   function attachModelEvents(grid) {
     grid.querySelectorAll('.model-card').forEach(function(card) {
@@ -1273,6 +1295,7 @@
         applyTheme();
         renderFixedFields();
         renderModels();
+        handleHashChange();
         // Load persisted cart and adjust stock accordingly
         var restored = loadCartFromStorage();
         // Rehydrate stock from persisted cart
