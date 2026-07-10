@@ -116,6 +116,24 @@
   .add-model-tile:hover { border-color:var(--brass); color:var(--brass); }
   body.editing .add-model-tile { display:flex; }
 
+  #public-edit-toggle { position:fixed; bottom:22px; right:22px; z-index:100; min-width:44px; height:46px; border-radius:24px; background:var(--navy); color:var(--cream); border:none; font-size:0.95rem; cursor:pointer; opacity:0.75; padding:0 14px; transition:opacity 0.2s ease; }
+  #public-edit-toggle:hover { opacity:1; }
+  #admin-fab { position:fixed; bottom:22px; right:96px; z-index:100; width:46px; height:46px; border-radius:50%; background:var(--navy); color:var(--cream); border:none; font-size:1.15rem; cursor:pointer; opacity:0.35; transition:opacity 0.2s ease; }
+  #admin-fab:hover { opacity:1; }
+  body.editing #admin-fab { display:none; }
+
+  #admin-bar { display:none; position:fixed; top:0; left:0; right:0; z-index:100; background:var(--navy); color:var(--cream); padding:14px 20px; align-items:center; justify-content:space-between; gap:12px; font-size:0.8rem; flex-wrap:wrap; }
+  body.editing #admin-bar { display:flex; }
+  #admin-bar .label { font-weight:700; letter-spacing:0.05em; text-transform:uppercase; font-size:0.7rem; opacity:0.7; }
+  #admin-bar .theme-picker { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  #admin-bar .theme-picker label { font-size:0.72rem; display:flex; align-items:center; gap:6px; color:var(--cream); opacity:0.85; }
+  #admin-bar .theme-picker input[type="color"] { width:32px; height:32px; border:none; padding:0; cursor:pointer; border-radius:4px; }
+  #admin-bar .actions { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  #admin-bar button { background:transparent; border:1px solid rgba(242,233,214,0.4); color:var(--cream); padding:8px 14px; border-radius:4px; font-size:0.76rem; font-weight:700; cursor:pointer; transition:all 0.2s ease; }
+  #admin-bar button:hover { background:var(--cream); color:var(--navy); border-color:var(--cream); }
+  #admin-bar button.primary { background:var(--brass); border-color:var(--brass); color:var(--navy); }
+  body.editing nav { top:52px; }
+
   .manifesto { padding:150px 6vw; text-align:center; }
   .manifesto blockquote { max-width:740px; margin:0 auto; font-family:'Anton', sans-serif; font-size:clamp(1.6rem,3.8vw,2.5rem); line-height:1.32; text-transform:uppercase; outline:none; }
 
@@ -382,12 +400,19 @@
 
 <div id="admin-bar" data-admin-ui>
   <span class="label">Modo edicion activo</span>
+  <div class="theme-picker">
+    <label>Crema <input type="color" id="themeCream"></label>
+    <label>Azul <input type="color" id="themeNavy"></label>
+    <label>Oro <input type="color" id="themeBrass"></label>
+  </div>
   <div class="actions">
-    <button id="btn-save" class="primary">Guardar cambios (en vivo)</button>
+    <button id="btn-save" class="primary">Guardar cambios</button>
+    <button id="btn-save-local" type="button">Guardar local</button>
     <button id="btn-exit">Salir</button>
   </div>
 </div>
 
+<button id="public-edit-toggle" title="Editar contenido y tema">✎ Editar</button>
 <button id="admin-fab" data-admin-ui title="Editar sitio">&#9998;</button>
 
 <div id="access-modal" data-admin-ui>
@@ -644,6 +669,7 @@
 <script>
 (function() {
   var state = null;
+  var isAdmin = false;
   var pendingModelIndex = null;
   var pendingBgTarget = null;
   var galleryIndexes = {};
@@ -699,6 +725,10 @@
     if (data.manifesto.background === undefined) data.manifesto.background = '';
     if (!data.social) data.social = {};
     if (data.social.background === undefined) data.social.background = '';
+    if (!data.theme) data.theme = {};
+    if (!data.theme.cream) data.theme.cream = '#F2E9D6';
+    if (!data.theme.navy) data.theme.navy = '#131F3A';
+    if (!data.theme.brass) data.theme.brass = '#B8863F';
     if (!data.spacers) data.spacers = {};
     spacerKeys.forEach(function(k) { if (typeof data.spacers[k] !== 'number') data.spacers[k] = 0; });
     if (!Array.isArray(data.models)) data.models = [];
@@ -735,6 +765,115 @@
     });
     Object.keys(bgTargets).forEach(applySectionBackground);
     renderSpacers();
+    renderThemeControls();
+  }
+
+  function applyTheme() {
+    if (!state || !state.theme) return;
+    document.documentElement.style.setProperty('--cream', state.theme.cream || '#F2E9D6');
+    document.documentElement.style.setProperty('--navy', state.theme.navy || '#131F3A');
+    document.documentElement.style.setProperty('--brass', state.theme.brass || '#B8863F');
+  }
+
+  function renderThemeControls() {
+    if (!state || !state.theme) return;
+    var cream = document.getElementById('themeCream');
+    var navy = document.getElementById('themeNavy');
+    var brass = document.getElementById('themeBrass');
+    if (cream) cream.value = state.theme.cream || '#F2E9D6';
+    if (navy) navy.value = state.theme.navy || '#131F3A';
+    if (brass) brass.value = state.theme.brass || '#B8863F';
+  }
+
+  function toggleEditMode() {
+    var editing = document.body.classList.toggle('editing');
+    applyEditMode();
+    renderThemeControls();
+    var publicToggle = document.getElementById('public-edit-toggle');
+    if (publicToggle) {
+      publicToggle.textContent = editing ? '✕ Cerrar' : '✎ Editar';
+    }
+  }
+
+  function bindThemeControlEvents() {
+    var cream = document.getElementById('themeCream');
+    var navy = document.getElementById('themeNavy');
+    var brass = document.getElementById('themeBrass');
+    if (cream) {
+      cream.addEventListener('input', function() { updateThemeValue('cream', cream.value); });
+    }
+    if (navy) {
+      navy.addEventListener('input', function() { updateThemeValue('navy', navy.value); });
+    }
+    if (brass) {
+      brass.addEventListener('input', function() { updateThemeValue('brass', brass.value); });
+    }
+    var publicToggle = document.getElementById('public-edit-toggle');
+    if (publicToggle) {
+      publicToggle.addEventListener('click', function() {
+        toggleEditMode();
+      });
+    }
+    var localSave = document.getElementById('btn-save-local');
+    if (localSave) {
+      localSave.addEventListener('click', function() {
+        syncTextFromDom();
+        collectContent();
+        saveThemeToStorage();
+        saveLocalContent();
+        alert('Cambios guardados localmente en este navegador.');
+      });
+    }
+  }
+
+  function mergeObjects(base, override) {
+    if (!override || typeof override !== 'object') return base;
+    Object.keys(override).forEach(function(key) {
+      if (typeof override[key] === 'object' && override[key] !== null && !Array.isArray(override[key]) && typeof base[key] === 'object' && base[key] !== null) {
+        mergeObjects(base[key], override[key]);
+      } else {
+        base[key] = override[key];
+      }
+    });
+    return base;
+  }
+
+  function loadLocalContent() {
+    try {
+      var raw = localStorage.getItem('tb_local_content');
+      if (!raw) return;
+      var local = JSON.parse(raw);
+      if (local && typeof local === 'object') {
+        mergeObjects(state, local);
+      }
+    } catch (e) {}
+  }
+
+  function loadThemeFromStorage() {
+    try {
+      var raw = localStorage.getItem('tb_theme');
+      if (!raw) return;
+      var local = JSON.parse(raw);
+      if (local && typeof local === 'object') {
+        state.theme = state.theme || {};
+        mergeObjects(state.theme, local);
+      }
+    } catch (e) {}
+  }
+
+  function saveThemeToStorage() {
+    try { localStorage.setItem('tb_theme', JSON.stringify(state.theme || {})); } catch (e) {}
+  }
+
+  function saveLocalContent() {
+    try { localStorage.setItem('tb_local_content', JSON.stringify(state)); } catch (e) {}
+  }
+
+  function updateThemeValue(key, value) {
+    state.theme = state.theme || {};
+    state.theme[key] = value;
+    applyTheme();
+    saveThemeToStorage();
   }
 
   function applySectionBackground(targetKey) {
@@ -1142,8 +1281,9 @@
       .then(function(r) { return r.json(); })
       .then(function(data) {
         state = normalizeState(data);
-        // Load persisted notes into state before rendering
-        loadNotesFromStorage();
+        loadLocalContent();
+        loadThemeFromStorage();
+        applyTheme();
         renderFixedFields();
         renderModels();
         // Load persisted cart and adjust stock accordingly
@@ -1174,7 +1314,7 @@
   function checkSession() {
     fetch('/api/admin/me', { credentials: 'include' })
       .then(function(r) { return r.json(); })
-      .then(function(data) { if (data.isAdmin) enterEditMode(); })
+      .then(function(data) { if (data.isAdmin) { isAdmin = true; enterEditMode(); } })
       .catch(function() {});
   }
 
@@ -1247,21 +1387,29 @@
   });
 
   document.getElementById('btn-save').addEventListener('click', function() {
-    var payload = collectContent();
-    fetch('/api/content', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify(payload)
-    }).then(function(r) {
-      if (r.ok) {
-        alert('Cambios guardados. Ya son visibles para todo el mundo.');
-      } else {
-        return r.json().catch(function() { return {}; }).then(function(data) {
-          alert('No se pudo guardar (codigo ' + r.status + '): ' + (data.error || 'error desconocido'));
-        });
-      }
-    }).catch(function(err) { alert('Error de conexion al guardar: ' + err.message); });
+    syncTextFromDom();
+    collectContent();
+    saveThemeToStorage();
+    if (isAdmin) {
+      var payload = state;
+      fetch('/api/content', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      }).then(function(r) {
+        if (r.ok) {
+          alert('Cambios guardados. Ya son visibles para todo el mundo.');
+        } else {
+          return r.json().catch(function() { return {}; }).then(function(data) {
+            alert('No se pudo guardar (codigo ' + r.status + '): ' + (data.error || 'error desconocido'));
+          });
+        }
+      }).catch(function(err) { alert('Error de conexion al guardar: ' + err.message); });
+    } else {
+      saveLocalContent();
+      alert('Cambios guardados localmente en este navegador.');
+    }
   });
 
   function compressImage(file, maxDim, quality, callback) {
@@ -1932,6 +2080,7 @@
 
   loadContent();
   checkSession();
+  bindThemeControlEvents();
   renderCart();
   updateWishUI();
   startOfferCountdown();
