@@ -1003,7 +1003,12 @@
 
   function openDetailModal(cardIndex) {
     if (document.body.classList.contains('editing')) return;
-    window.location.hash = 'model-' + cardIndex;
+    var newHash = '#model-' + cardIndex;
+    if (window.location.hash === newHash) {
+      openDetailPage(cardIndex);
+    } else {
+      window.location.hash = newHash;
+    }
   }
 
   function openDetailPage(cardIndex) {
