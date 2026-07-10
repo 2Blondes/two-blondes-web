@@ -197,34 +197,30 @@
   /* Panel de detalle de modelo */
   #detail-modal {
     display: none; position: fixed; inset: 0; z-index: 300;
-    background: rgba(19,31,58,0.88); align-items: flex-start; justify-content: center; padding: 0;
+    background: rgba(19,31,58,0.92); align-items: flex-start; justify-content: center; padding: 16px;
+    overflow-y: auto;
   }
   #detail-modal.open { display: flex; }
   .detail-box {
-    background: var(--cream); width: 100%; height: 100%; max-width: none; max-height: none;
-    overflow: hidden; position: relative; display: flex; flex-direction: column;
-    box-shadow: none;
+    background: var(--cream); width: 100%; height: calc(100vh - 32px); max-width: none; max-height: none;
+    overflow: hidden; position: relative; display: flex; flex-direction: column; border-radius: 24px;
+    box-shadow: 0 28px 76px rgba(0,0,0,0.24);
   }
   .detail-close {
     position: absolute; top: 18px; right: 18px; z-index: 5;
-    background: rgba(19,31,58,0.9); color: var(--cream); border: none;
+    background: rgba(19,31,58,0.92); color: var(--cream); border: none;
     width: 40px; height: 40px; border-radius: 50%; font-size: 1.25rem; cursor: pointer;
   }
-  .detail-media { flex: 1; background: var(--line); overflow: hidden; display: flex; flex-direction: column; }
+  .detail-media { flex: 1 1 auto; background: var(--line); overflow: hidden; display: flex; flex-direction: column; }
   .detail-main-photo {
-    width: 100%; flex: 1; min-height: 60vh; position: relative; overflow: hidden; background: var(--cream);
+    width: 100%; flex: 1 1 auto; min-height: 58vh; position: relative; overflow: hidden; background: var(--cream);
   }
-  .detail-main-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
-  .detail-main-photo img.active { display: block; }
-  .detail-main-photo .placeholder-note { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; opacity: 0.35; flex-direction: column; text-align: center; }
-  .detail-thumbs { display: flex; gap: 10px; padding: 18px; flex-wrap: wrap; justify-content: center; background: var(--cream); }
-  .detail-thumbs .dthumb { width: 72px; height: 92px; border: 1px solid rgba(19,31,58,0.12); overflow: hidden; cursor: pointer; opacity: 0.75; transition: opacity 0.2s ease, transform 0.2s ease; }
+  .detail-main-photo img { position: relative; display: block; width: 100%; height: auto; object-fit: contain; }
+  .detail-thumbs { display: flex; gap: 10px; padding: 18px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; background: var(--cream); }
+  .detail-thumbs .dthumb { width: 88px; height: 120px; flex: 0 0 auto; border: 1px solid rgba(19,31,58,0.12); overflow: hidden; cursor: pointer; opacity: 0.75; transition: opacity 0.2s ease, transform 0.2s ease; border-radius: 14px; }
   .detail-thumbs .dthumb:hover { opacity: 1; transform: translateY(-2px); }
   .detail-thumbs .dthumb.active { opacity: 1; border-color: var(--brass); }
   .detail-thumbs .dthumb img { width: 100%; height: 100%; object-fit: cover; }
-  .detail-thumbs .dthumb { width: 54px; height: 68px; border: 1px solid var(--line); overflow: hidden; cursor: pointer; opacity: 0.6; transition: opacity 0.2s ease, border-color 0.2s ease; }
-  .detail-thumbs .dthumb img { width: 100%; height: 100%; object-fit: cover; }
-  .detail-thumbs .dthumb.active { opacity: 1; border-color: var(--brass); }
   .detail-info { padding: 56px 44px; display: flex; flex-direction: column; justify-content: flex-start; }
   .detail-info .model-index { position: static; font-size: 4.4rem; color: var(--line); margin-bottom: 10px; }
   .detail-info h2 { font-family: 'Anton', sans-serif; font-size: 2.1rem; text-transform: uppercase; letter-spacing: 0.01em; margin-bottom: 18px; line-height: 1.05; }
