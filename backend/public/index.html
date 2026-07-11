@@ -41,7 +41,7 @@
   /* Fondo generico reutilizable para hero + secciones */
   .section-bg { position:relative; background-size:cover; background-position:center; }
   .section-bg::before { content:''; position:absolute; inset:0; background:rgba(19,31,58,0); pointer-events:none; transition:background 0.3s ease; z-index:0; }
-  .section-bg.has-bg::before { background:rgba(19,31,58,0.55); }
+  .section-bg.has-bg::before { background:rgba(19,31,58, var(--bg-overlay-alpha, 0.55)); }
   .section-bg > * { position:relative; z-index:1; }
   .section-bg.has-bg .eyebrow { color:#DCC98A; }
   .section-bg.has-bg .section-head h2,
@@ -417,6 +417,7 @@
   <div class="theme-picker">
     <label>Crema <input type="color" id="themeCream"></label>
     <label>Brillo <input type="range" id="themeBrightness" min="-60" max="60" value="0" step="1"></label>
+    <label>Brillo fondo img <input type="range" id="themeBgBrightness" min="0" max="100" value="50" step="1"></label>
     <label>Azul <input type="color" id="themeNavy"></label>
     <label>Oro <input type="color" id="themeBrass"></label>
   </div>
@@ -842,6 +843,9 @@
     document.documentElement.style.setProperty('--cream', adjustBrightness(baseCream, brightness));
     document.documentElement.style.setProperty('--navy', state.theme.navy || '#131F3A');
     document.documentElement.style.setProperty('--brass', state.theme.brass || '#B8863F');
+    var bgBrightness = state.theme.bgBrightness === undefined ? 50 : state.theme.bgBrightness;
+    var overlayAlpha = 0.9 * (1 - bgBrightness / 100);
+    document.documentElement.style.setProperty('--bg-overlay-alpha', overlayAlpha.toFixed(2));
   }
 
   function renderThemeControls() {
@@ -850,10 +854,12 @@
     var navy = document.getElementById('themeNavy');
     var brass = document.getElementById('themeBrass');
     var brightness = document.getElementById('themeBrightness');
+    var bgBrightness = document.getElementById('themeBgBrightness');
     if (cream) cream.value = state.theme.cream || '#F2E9D6';
     if (navy) navy.value = state.theme.navy || '#131F3A';
     if (brass) brass.value = state.theme.brass || '#B8863F';
     if (brightness) brightness.value = state.theme.brightness || 0;
+    if (bgBrightness) bgBrightness.value = state.theme.bgBrightness === undefined ? 50 : state.theme.bgBrightness;
   }
 
   function toggleEditMode() {
@@ -948,7 +954,7 @@
       saveThemeToStorage();
       closeColorPopup();
     });
-    setTimeout(function() { input.click(); }, 0);
+    input.click();
   }
 
   function rgbToHex(rgb) {
@@ -999,6 +1005,7 @@
     var navy = document.getElementById('themeNavy');
     var brass = document.getElementById('themeBrass');
     var brightness = document.getElementById('themeBrightness');
+    var bgBrightness = document.getElementById('themeBgBrightness');
     if (cream) {
       cream.addEventListener('input', function() { updateThemeValue('cream', cream.value); });
     }
@@ -1010,6 +1017,9 @@
     }
     if (brightness) {
       brightness.addEventListener('input', function() { updateThemeValue('brightness', Number(brightness.value)); });
+    }
+    if (bgBrightness) {
+      bgBrightness.addEventListener('input', function() { updateThemeValue('bgBrightness', Number(bgBrightness.value)); });
     }
     bindTextColorEvents();
     var localSave = document.getElementById('btn-save-local');
