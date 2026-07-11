@@ -231,6 +231,27 @@
   }
   .detail-main-photo img.active { display: block; }
   .detail-thumbs { display: flex; gap: 10px; padding: 18px; flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; background: var(--cream); }
+  @media (min-width: 900px) {
+    .detail-box { flex-direction: row; }
+    .detail-media {
+      flex: 1 1 auto; display: grid; grid-template-columns: 96px 1fr; gap: 16px;
+      padding: 24px; min-width: 0;
+    }
+    .detail-media .detail-thumbs {
+      order: -1; flex-direction: column; overflow-x: hidden; overflow-y: auto;
+      background: transparent; padding: 0; width: 96px;
+    }
+    .detail-media .detail-thumbs .dthumb { width: 96px; height: 96px; }
+    .detail-main-photo { min-height: 0; height: 100%; background: transparent; }
+    .detail-info { flex: 0 0 440px; overflow-y: auto; border-left: 1px solid var(--line); }
+  }
+  .detail-accordion { border-top: 1px solid var(--line); padding: 14px 0; }
+  .detail-accordion summary { cursor: pointer; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; list-style: none; display: flex; align-items: center; justify-content: space-between; }
+  .detail-accordion summary::-webkit-details-marker { display: none; }
+  .detail-accordion summary::after { content: '+'; font-size: 1.1rem; font-weight: 400; }
+  .detail-accordion[open] summary::after { content: '−'; }
+  .detail-accordion-body { margin-top: 12px; font-size: 0.85rem; color: var(--navy-soft); line-height: 1.6; }
+
   .detail-thumbs .dthumb { width: 88px; height: 120px; flex: 0 0 auto; border: 1px solid rgba(19,31,58,0.12); overflow: hidden; cursor: pointer; opacity: 0.75; transition: opacity 0.2s ease, transform 0.2s ease; border-radius: 14px; }
   .detail-thumbs .dthumb:hover { opacity: 1; transform: translateY(-2px); }
   .detail-thumbs .dthumb.active { opacity: 1; border-color: var(--brass); }
@@ -592,11 +613,23 @@
       <div class="size-label">Talla</div>
       <button class="size-guide-link" id="openSizeGuideBtn" type="button">Ver guia de tallas</button>
       <div class="size-row" id="detail-sizes"></div>
-      <p class="stock-note" id="detail-stock-note"></p>
-      <textarea id="detail-note" class="detail-note" rows="2" placeholder="AÑADE UNA NOTA PERSONALIZADA O DUDA (OPCIONAL)"></textarea>
       <button class="btn-primary" id="detail-add-btn" type="button">Anadir a la bolsa</button>
       <button class="detail-reserve-btn" id="detail-reserve-btn" type="button">Reservar</button>
       <div id="detail-inline-toast" class="inline-toast" style="display:none"></div>
+
+      <details class="detail-accordion" open>
+        <summary>Detalles</summary>
+        <div class="detail-accordion-body">
+          <p class="stock-note" id="detail-stock-note"></p>
+          <textarea id="detail-note" class="detail-note" rows="2" placeholder="AÑADE UNA NOTA PERSONALIZADA O DUDA (OPCIONAL)"></textarea>
+        </div>
+      </details>
+      <details class="detail-accordion">
+        <summary>Envios y devoluciones</summary>
+        <div class="detail-accordion-body">
+          <p>Envio en 24-48h. Devoluciones gratuitas en un plazo de 14 dias desde la recepcion del pedido.</p>
+        </div>
+      </details>
 
       <div class="crosssell">
         <h4>Combina con</h4>
