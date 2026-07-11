@@ -110,11 +110,18 @@
   .thumb-add { width:48px; height:60px; border:1px dashed var(--line); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:1.1rem; color:var(--navy-soft); background:transparent; }
   .thumb-add:hover { border-color:var(--brass); color:var(--brass); }
 
-  .card-info { position:relative; z-index:1; padding-top:8px; }
-  .card-info h3 { font-family:'Anton', sans-serif; font-size:1.45rem; letter-spacing:0.03em; text-transform:uppercase; margin-bottom:8px; outline:none; }
-  .card-info p { font-size:0.94rem; color:var(--navy-soft); line-height:1.7; margin-bottom:18px; outline:none; }
-  .card-info .rating-row { margin-top:0; }
-  .price-row { font-weight:800; margin-top:8px; color:var(--navy); font-size:1.02rem; }
+  .card-info { position:relative; z-index:1; padding-top:12px; display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .card-info h3 { font-family:'Inter', sans-serif; font-weight:600; font-size:0.92rem; letter-spacing:0.01em; text-transform:none; margin-bottom:0; outline:none; }
+  .card-info p.model-desc { display:none; }
+  .card-info .rating-row { display:none; }
+  .card-info .price-row { font-weight:600; margin-top:0; color:var(--navy-soft); font-size:0.9rem; white-space:nowrap; }
+  .card-quick-add {
+    position:absolute; z-index:2; bottom:14px; right:14px; width:38px; height:38px; border-radius:50%;
+    background:var(--cream); border:1px solid rgba(19,31,58,0.1); color:var(--navy); font-size:1.3rem;
+    display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 8px 20px rgba(19,31,58,0.16);
+    transition:transform 0.2s ease, background 0.2s ease;
+  }
+  .card-quick-add:hover { transform:scale(1.08); background:var(--brass); color:var(--cream); }
 
   .add-model-tile { display:none; align-items:center; justify-content:center; background:var(--cream); border:2px dashed rgba(19,31,58,0.18); min-height:280px; cursor:pointer; transition:border-color 0.2s ease, color 0.2s ease, background 0.2s ease; color:var(--navy-soft); font-weight:700; text-transform:uppercase; letter-spacing:0.08em; font-size:0.95rem; border-radius:28px; }
   .add-model-tile:hover { border-color:var(--brass); color:var(--brass); }
@@ -1179,7 +1186,9 @@
         }).join('') + '</div>'
       : '';
 
-    return '<div class="photo-slot" data-card="' + cardIndex + '">' + imgsHtml + placeholder + arrows + dots + '</div>';
+    return '<div class="photo-slot" data-card="' + cardIndex + '">' + imgsHtml + placeholder + arrows + dots +
+      '<button class="card-quick-add" data-quickadd-index="' + cardIndex + '" type="button" aria-label="Vista rapida">+</button>' +
+      '</div>';
   }
 
   function thumbStripHtml(model, cardIndex) {
