@@ -20,9 +20,9 @@
   :root {
     --cream: #F2E9D6;
     --navy: #131F3A;
-    --navy-soft: rgba(19,31,58,0.62);
+    --navy-soft: color-mix(in srgb, var(--navy) 62%, transparent);
     --brass: #B8863F;
-    --line: rgba(19,31,58,0.16);
+    --line: color-mix(in srgb, var(--navy) 16%, transparent);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   html { scroll-behavior: smooth; }
@@ -83,7 +83,7 @@
   .garments { max-width:1120px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit, minmax(280px,1fr)); gap:28px; padding:10px; }
   .garment-card { background:#fff; padding:24px 24px 28px; position:relative; display:flex; flex-direction:column; border:1px solid rgba(19,31,58,0.08); border-radius:32px; box-shadow:0 24px 60px rgba(19,31,58,0.08); transition:transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease; overflow:hidden; }
   .garment-card:hover { transform: translateY(-8px); box-shadow:0 30px 72px rgba(19,31,58,0.12); border-color:rgba(19,31,58,0.12); }
-  .model-index { font-family:'Anton', sans-serif; font-size:0.85rem; color:rgba(19,31,58,0.4); position:absolute; top:18px; left:18px; line-height:1; user-select:none; background:rgba(19,31,58,0.05); padding:8px 12px; border-radius:999px; letter-spacing:0.18em; text-transform:uppercase; }
+  .model-index { font-family:'Anton', sans-serif; font-size:0.85rem; color:color-mix(in srgb, var(--navy) 40%, transparent); position:absolute; top:18px; left:18px; line-height:1; user-select:none; background:rgba(19,31,58,0.05); padding:8px 12px; border-radius:999px; letter-spacing:0.18em; text-transform:uppercase; }
   .model-delete { display:none; position:absolute; top:18px; right:18px; background:var(--navy); color:var(--cream); border:none; border-radius:50%; width:26px; height:26px; font-size:0.9rem; cursor:pointer; align-items:center; justify-content:center; z-index:3; }
   body.editing .model-delete { display:flex; }
 
@@ -393,7 +393,7 @@
   #syncDot.err { background:#a13a3a; display:inline-block; }
   /* Campo de nota ultra-minimalista en ficha de producto */
   .detail-note { width:100%; resize:none; border:0; border-bottom:1px solid #000; background:transparent; padding:8px 0; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.02em; font-weight:700; color:var(--navy); outline:none; margin:12px 0; }
-  .detail-note::placeholder { color:rgba(19,31,58,0.28); font-weight:700; }
+  .detail-note::placeholder { color:color-mix(in srgb, var(--navy) 28%, transparent); font-weight:700; }
   .detail-reserve-btn { display:block; width:100%; text-align:center; background:transparent; color:var(--navy); border:1px solid var(--navy); padding:12px; font-size:0.76rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; border-radius:2px; cursor:pointer; margin-top:8px; }
   .detail-reserve-btn:disabled { opacity:0.45; cursor:not-allowed; }
   .inline-toast { position:relative; display:inline-block; margin-top:8px; padding:6px 10px; background:var(--navy); color:var(--cream); border-radius:3px; font-size:0.75rem; transform:translateY(6px); opacity:0; transition:opacity 0.22s ease, transform 0.22s ease; }
