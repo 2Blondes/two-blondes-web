@@ -72,8 +72,7 @@
   body.editing .spacer-block { min-height:54px; }
   .spacer-control { display:none; align-items:center; gap:10px; background:rgba(19,31,58,0.06); border:1px dashed var(--line); padding:6px 14px; border-radius:20px; font-size:0.74rem; color:var(--navy-soft); font-weight:600; }
   body.editing .spacer-control { display:flex; }
-  .spacer-control button { background:var(--cream); color:var(--navy); border-bottom:1px solid rgba(0,0,0,0.08); border:none; width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:0.9rem; line-height:1; }
-  .spacer-control span { min-width:44px; text-align:center; }
+.spacer-control button { background:#1a1a1a; color:var(--cream); border:none; width:22px; height:22px; border-radius:50%; cursor:pointer; font-size:0.9rem; line-height:1; }  .spacer-control span { min-width:44px; text-align:center; }
 
   .section-head { text-align:center; padding:0 6vw; margin-bottom:80px; }
   .section-head h2 { font-size:clamp(2rem,4.8vw,3.2rem); margin-top:14px; }
@@ -147,7 +146,7 @@
   .tb-color-popup { position:fixed; z-index:500; background:#fff; padding:8px; border-radius:10px; box-shadow:0 12px 32px rgba(0,0,0,0.28); display:flex; align-items:center; gap:8px; }
   .tb-color-popup input[type="color"] { width:34px; height:34px; border:none; padding:0; cursor:pointer; border-radius:6px; }
   .tb-color-popup button { border:1px solid var(--line); background:transparent; border-radius:6px; width:30px; height:30px; font-size:0.9rem; cursor:pointer; color:var(--navy); }
- { padding:150px 6vw; text-align:center; }
+ .cta-section { padding:150px 6vw; text-align:center; }
   .manifesto blockquote { max-width:740px; margin:0 auto; font-family:'Anton', sans-serif; font-size:clamp(1.6rem,3.8vw,2.5rem); line-height:1.32; text-transform:uppercase; outline:none; }
 
   .social-section { border-top:1px solid var(--line); padding:120px 6vw 130px; text-align:center; }
@@ -290,7 +289,7 @@
   .mobile-menu-close { position:absolute; top:24px; right:24px; background:none; border:none; font-size:1.5rem; color:var(--navy); cursor:pointer; }
 
   /* Barra de envio gratis + urgencia */
-  .offer-banner { position:fixed; top:0; left:0; right:0; z-index:50; background:var(--navy); color:var(--cream); text-align:center; padding:9px 14px; font-size:0.74rem; font-weight:700; letter-spacing:0.04em; }
+  .offer-banner { position:fixed; top:0; left:0; right:0; z-index:50; display:none; }
   .offer-banner span#offerCountdown { font-variant-numeric:tabular-nums; margin-left:6px; }
   body.editing .offer-banner { display:none; }
   nav { top:38px; }
